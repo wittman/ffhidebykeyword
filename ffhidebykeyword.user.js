@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name          FriendFeedHideByKeyword
-// @namespace     http://www.mcalamelli.net
-// @description   Hide posts using keywords
-// @include       http://friendfeed.com/*
-// @exclude       http://friendfeed.com/filter/direct
-// @version       0.7
+// @name FriendFeedHideByKeyword
+// @namespace http://www.mcalamelli.net
+// @description Hide posts using keywords
+// @include http://friendfeed.com/*
+// @exclude http://friendfeed.com/filter/direct
+// @version 0.7
 // ==/UserScript==
 
 // Fix Chrome bug, looks like that Chrome reloads the script (dunno why)
@@ -15,7 +15,8 @@ if (document.getElementById("hbkw") == null) {
 // fresh: is this a new hide, or we're hiding using an existing keyword?
 function hide(kw, fresh) {
    var posts = document.getElementsByClassName("text");
-   var re = new RegExp(kw, "i");
+   //word boundary parsing - keyword are words not substrings. If keyword is "edible" the false positive "incredible" will not match
+   var re = new RegExp('^' + kw +'|([^a-z]' + kw + '[^a-z])|([^a-z]' + kw + '$)', 'i'); 
    var hideCount = 0;
 
    // walking through posts to search unwanted keyword
@@ -35,13 +36,13 @@ function hide(kw, fresh) {
          hiddenEntry.style.display="none";
       } else {
          if (fresh == false) {
-            // keyword not found, but fresh is false, so this call came from 
+            // keyword not found, but fresh is false, so this call came from
             // a page refresh & cookie. i've to remove unmatched keyword
             /* This piece of code could be useful, i'll keep commented
-            var ii = keywordArray.indexOf(kw);
-            keywordArray.splice(ii, 1);
-            storeKeywordsInCookie(keywordArray.join(","));
-            */
+var ii = keywordArray.indexOf(kw);
+keywordArray.splice(ii, 1);
+storeKeywordsInCookie(keywordArray.join(","));
+*/
          }
       }
    }
@@ -51,7 +52,7 @@ function hide(kw, fresh) {
       if (true == fresh) {
          if (!window.chrome) {
             // Firefox
-            document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (" + hideCount + ")  [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
+            document.getElementById("hbkw").innerHTML += "<p id=\"id" + kw + "\" class=\"hkw\" style=\"margin:0pt\">" + kw + " (" + hideCount + ") [<a href=\"#\" onclick=\"unhide('" + kw + "')\">Unhide</a>]</p>";
          } else {
             // Chrome
             var hbkw = document.getElementById('kw').parentNode;
@@ -59,7 +60,7 @@ function hide(kw, fresh) {
             _p.setAttribute("id", "id" + kw);
             _p.setAttribute("class", "hkw");
             _p.setAttribute("style", "margin:0pt");
-            _p.innerHTML = kw + " (" + hideCount + ")  [";
+            _p.innerHTML = kw + " (" + hideCount + ") [";
             var _a = document.createElement("a");
             _a.setAttribute("href","#");
             _a.setAttribute("onclick","unhide('" + kw +"')");
@@ -109,7 +110,7 @@ function checkNewPost(txt) {
    
    for (var i = 0; i < kwList.length; i++) {
       var kw = kwList[i].getAttribute("id").substr(2);
-      var re = new RegExp(kw, "i");
+      var re = new RegExp('^' + kw +'|([^a-z]' + kw + '[^a-z])|([^a-z]' + kw + '$)', 'i'); //new RegExp(kw, "i");
       if (txt.search(re) != -1) {
          hide(kw, false);
          break;
@@ -157,7 +158,7 @@ function createHideBox() {
    FFBoxBody[0].insertBefore(hbkwSect, FFSection.nextSibling);
 }
 
-// push local function into DOM 
+// push local function into DOM
 function embedInDOM(s) {
    var scpt = document.createElement('script');
    scpt.setAttribute("type","text/javascript");
